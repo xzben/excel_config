@@ -1,0 +1,130 @@
+[
+  {
+    "exportfile": "config_client\\HerosConfig.json",
+    "root": "HerosConfig",
+    "item": "Hero",
+    "schema": {
+      "Id": [
+        "int",
+        "索引"
+      ],
+      "Name": [
+        "string",
+        "名称"
+      ],
+      "MountId": [
+        "int",
+        "坐骑"
+      ],
+      "Sex": [
+        "bool",
+        "性别"
+      ],
+      "Height": [
+        "double",
+        "身高"
+      ],
+      "Weapons": [
+        [
+          "int"
+        ],
+        "武器"
+      ],
+      "Property": [
+        {
+          "Hp": [
+            "int"
+          ],
+          "Magic": [
+            "int"
+          ]
+        },
+        "主要属性"
+      ],
+      "Bags": [
+        [
+          {
+            "Id": [
+              "int"
+            ],
+            "Count": [
+              "int"
+            ]
+          }
+        ],
+        "背包"
+      ]
+    }
+  },
+  {
+    "exportfile": "config_client\\skillsConfig.json",
+    "root": "skillsConfig",
+    "item": "skill",
+    "schema": {
+      "Id": [
+        "int",
+        "索引"
+      ],
+      "params": [
+        "map",
+        "索引"
+      ]
+    }
+  },
+  {
+    "exportfile": "config_client\\GlobalConfig.json",
+    "root": "GlobalConfig",
+    "item": "Global",
+    "schema": {
+      "NameLimit": [
+        "int",
+        "名字字数限制"
+      ],
+      "LevelRange": [
+        {
+          "Min": [
+            "int"
+          ],
+          "Max": [
+            "int"
+          ]
+        },
+        "等级区间"
+      ]
+    }
+  },
+  {
+    "exportfile": "config_client\\MountsConfig.json",
+    "root": "MountsConfig",
+    "item": "Mount",
+    "schema": {
+      "Id": [
+        "int",
+        "索引"
+      ],
+      "Name": [
+        "string",
+        "名称"
+      ]
+    }
+  },
+  {
+    "exportfile": "config_client\\TextConfig.json",
+    "root": "TextConfig",
+    "item": "Text",
+    "schema": {
+      "Text_1": [
+        "string",
+        "文本1"
+      ],
+      "Text_2": [
+        "string",
+        "文本2"
+      ],
+      "Text_3": [
+        "string",
+        "文本3"
+      ]
+    }
+  }
+]
