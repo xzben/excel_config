@@ -54,9 +54,17 @@ def getscemainfo(typename, description):
 def getexportmark(sheetName):
   p = re.search('\|[' + string.whitespace + ']*(_|[a-zA-Z]\w+)', sheetName)
   return p.group(1) if p else False
+
 def getIsMap(sheetName):
-  p = re.search('\|['+string.whitespace+']*(map)+['+string.whitespace+']*\|*', sheetName)
+  p = re.search('\|['+string.whitespace+']*(map)(\d*)+['+string.whitespace+']*\|*', sheetName)
   return p.group(1) == "map" if p else False
+
+def getMapLevel(sheetName):
+  p = re.search('\|['+string.whitespace+']*map([0-9])+['+string.whitespace+']*\|*', sheetName)
+  level = 1
+  if p :
+    level = p.group(1)
+  return int(level);
 
 def issignmatch(signarg, sign):
   if signarg is None:
@@ -213,7 +221,10 @@ def get_type_value(typename, value):
   return str(value) 
 
 def get_obj_str_value(obj, type_):
-  fieldnamestypes = type_.strip('{}[]').split(':')
+  fieldname = type_.strip('{}[]')
+  if fieldname == '':
+    return ''
+  fieldnamestypes = fieldname.split(':')
   retvalue = ""
   for i in range(0, len(fieldnamestypes)):
     fieldtype, fieldname = splitspace(fieldnamestypes[i])
@@ -396,6 +407,9 @@ class Exporter:
           coutendmark = sheet.name.endswith('>>')
           
           mapmark = getIsMap(sheet.name)
+          maplevel = 1
+          if mapmark:
+            maplevel = getMapLevel(sheet.name)
 
           configtitleinfo = self.getconfigsheetfinfo(sheet)
           if not configtitleinfo:
@@ -413,7 +427,7 @@ class Exporter:
             nochanged = False
             if isoutofdate(self.path, exportfile):
               if item:
-                exportobj = self.exportitemsheet(sheet, mapmark)
+                exportobj = self.exportitemsheet(sheet, mapmark, maplevel)
               else:
                 exportobj = self.exportconfigsheet(sheet, configtitleinfo)
             else:
@@ -437,7 +451,7 @@ class Exporter:
               break
           else:
             if item:
-              exportobj = self.exportitemsheet(sheet, mapmark)
+              exportobj = self.exportitemsheet(sheet, mapmark, maplevel)
               cout[0][item + 's'] = [[exportobj[0]]]
               obj = exportobj[1]
               if obj:
@@ -469,7 +483,7 @@ class Exporter:
     else:
       return None
         
-  def exportitemsheet(self, sheet, isMap = False ):
+  def exportitemsheet(self, sheet, isMap = False, mapLevel = 1 ):
     descriptions = sheet.row_values(0)
     types = sheet.row_values(1)
     names = sheet.row_values(2)
@@ -527,8 +541,8 @@ class Exporter:
                 else:
                   skiptokenindex = len(signtoken) + 2
             
-            itemkey = str(row[0]).lstrip()
-            
+            itemkey = []
+
             nextcol = 0
             for self.colindex in range(sheet.ncols):
               if self.colindex >= nextcol: 
@@ -566,21 +580,16 @@ class Exporter:
                     value = get_obj_str_value(objData, type_)
                   elif width > 1 and typename == "map":
                     objData = collections.OrderedDict()
-                    temptype = "{"
-                    isFirst = True
+   
+                  
                     for curRow in range(self.rowindex, self.rowindex+height):
                       objkey = str(sheet.cell_value(curRow, self.colindex)).strip()
                       objType = str(sheet.cell_value(curRow, self.colindex+1)).strip()
                       objvalue = str(sheet.cell_value(curRow, self.colindex+2)).strip()
-                      objData[objkey] = objvalue
-                      if not isFirst:
-                        temptype = temptype + ":"
-                      else:
-                        isFirst = False;
-                      temptype = temptype + objType + " " + objkey
-                    temptype = temptype + "}"
-                    type_ = temptype
-                    value = get_obj_str_value(objData, temptype)
+                      if not (objkey == '' or objType == '' or objvalue == ''):
+                        self.buildexpress(objData, objType, objkey, objvalue)
+                    type_ = 'map'
+                    value = objData
                   else:
                     value = str(row[self.colindex])
 
@@ -590,13 +599,22 @@ class Exporter:
                   if type_ and name and value:
                     self.buildexpress(item, type_, name, value)
 
-                  if self.colindex == 0:
-                    itemkey = item[name]
+                  if len(itemkey) < mapLevel:
+                    itemkey.append(item[name])
+
                 spacerowcount = 0
                 
             if isMap:
                 if item:
-                  obj[itemkey] = item
+                  setObj = obj
+                  keyLen = len(itemkey)
+                  for idx in range(0, keyLen-1):
+                    key = itemkey[idx]
+                    if not (key in setObj):
+                      setObj[key] = collections.OrderedDict();
+                    setObj = setObj[key]
+                  
+                  setObj[itemkey[keyLen-1]] = item
             else:
               if item:
                 list_.append(item)
